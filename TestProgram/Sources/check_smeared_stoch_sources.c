@@ -237,7 +237,7 @@ int main(int argc, char *argv[]) {
         for (beta = 0; beta < 4; beta++) {
             lidx = beta + col * 4;
             // Fphi_cpu_(&source[lidx], &source_pt[lidx], mes_ip.alpha);
-            gaussian_smearing(&src[lidx], &src_pt[lidx], mes_ip.alpha);
+            gaussian_smearing(&src[lidx], &src_pt[lidx], u_gauge_f, mes_ip.alpha);
         }
     }
 
