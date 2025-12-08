@@ -141,14 +141,14 @@ int main(int argc, char *argv[]) {
         lprintf("MAIN", 0, "Configuration from %s\n", cnfg_filename);
 
         read_gauge_field(cnfg_filename);
-        copy_suNg_field(HYP,u_gauge);
+        // copy_suNg_field(HYP,u_gauge);
 
         represent_gauge_field();
 
         lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
         full_plaquette();
 
-        HYP_smearing(u_gauge, HYP, HYP_var.weight);
+        // HYP_smearing(HYP, u_gauge, HYP_var.weight);
 
         lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
         full_plaquette();
@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
         lprintf("CORR", 0, "Number of Gaussian smearing levels = %d\n", 0, disc_var.n_smr);
         lprintf("CORR", 0, "Smearing parameter alpha = %d\n", 0, disc_var.alpha);
         measure_loops_smeared(m, disc_var.nhits, i, disc_var.precision, disc_var.source_type, disc_var.n_mom, disc_var.n_smr,
-                              disc_var.alpha, DONTSTORE, NULL);
+                              disc_var.alpha, HYP_var.weight, DONTSTORE, NULL);
 
         if (list == NULL) { break; }
     }
