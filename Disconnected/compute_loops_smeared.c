@@ -152,6 +152,7 @@ int main(int argc, char *argv[]) {
         lprintf("CORR", 0, "Number of noise vector : nhits = %i \n", disc_var.nhits);
         lprintf("CORR", 0, "Number of Gaussian smearing levels = %d\n", disc_var.n_smr);
         lprintf("CORR", 0, "Smearing parameter alpha = %f\n", disc_var.alpha);
+        lprintf("CORR", 0, "SCEMOOOOOOOOOO\n");
         measure_loops_smeared(m, disc_var.nhits, i, disc_var.precision, disc_var.source_type, disc_var.n_mom, disc_var.n_smr,
                               disc_var.alpha, HYP_var.weight, DONTSTORE, NULL);
 

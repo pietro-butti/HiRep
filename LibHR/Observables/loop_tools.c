@@ -526,6 +526,7 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
         HYP = alloc_suNg_field(&glattice);
         HYP_f = alloc_suNf_field(&glattice);
 
+        lprintf("CORR", 0, "SMEARING DONEEEEEEEEEEEE\n");
         if (HYP_weight == NULL) {
             copy_suNg_field(HYP, u_gauge);
             copy_suNf_field(HYP_f, u_gauge_f);
