@@ -117,6 +117,41 @@ void _gaussian_smearing(spinor_field *restrict out, spinor_field *restrict in, s
     } /* PIECE FOR */
 }
 
+void represent_smeared_field(suNg_field *HYP, suNf_field *HYP_f) {
+    /* loop on local lattice first */
+    /* loop on the rest of master sites */
+    _OMP_PRAGMA(_omp_parallel)
+    for (int ip = 0; ip < glattice.local_master_pieces; ip++) {
+        _OMP_PRAGMA(_omp_for)
+        for (int ix = glattice.master_start[ip]; ix <= glattice.master_end[ip]; ix++) {
+            for (int mu = 0; mu < 4; mu++) {
+                suNg *u = ((HYP->ptr) + coord_to_index(ix, mu));
+                suNf *Ru = ((HYP_f->ptr) + coord_to_index(ix, mu));
+                _group_represent2(Ru, u);
+            }
+        }
+    }
+
+    /* wait gauge field transfer */
+    complete_sendrecv_suNg_field(u_gauge);
+
+    /* loop on the rest of master sites */
+    _OMP_PRAGMA(_omp_parallel)
+    for (int ip = glattice.local_master_pieces; ip < glattice.total_gauge_master_pieces; ip++) {
+        _OMP_PRAGMA(_omp_for)
+        for (int ix = glattice.master_start[ip]; ix <= glattice.master_end[ip]; ix++) {
+            for (int mu = 0; mu < 4; mu++) {
+                suNg *u = ((HYP->ptr) + coord_to_index(ix, mu));
+                suNf *Ru = ((HYP_f->ptr) + coord_to_index(ix, mu));
+                _group_represent2(Ru, u);
+            }
+        }
+    }
+
+    // WARNING THIS WORKS ONLY FOR PERIODIC BC ON SMEARED FIELDS
+    // apply_BCs_on_represented_gauge_field();
+}
+
 void measure_bilinear_loops_4spinorfield(spinor_field *prop, spinor_field *source, int src_id, int tau, int col, int eo,
                                          storage_switch swc, data_storage_array **ret) {
     hr_complex **corr;
@@ -570,7 +605,8 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
 #endif
             zero_spinor_field(prop + i);
         }
-    }    
+    }
+
     spinor_field *source1;
     suNg_field *HYP = NULL;
     suNf_field *HYP_f = NULL;
@@ -584,46 +620,7 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
             copy_suNf_field(HYP_f, u_gauge_f);
         } else { // REPRESENT SMEARED GAUGE FIELD
             HYP_smearing(HYP, u_gauge, HYP_weight);
-            static int first_time = 1;
-
-            /* loop on local lattice first */
-            /* loop on the rest of master sites */
-            _OMP_PRAGMA(_omp_parallel)
-            for (int ip = 0; ip < glattice.local_master_pieces; ip++) {
-                _OMP_PRAGMA(_omp_for)
-                for (int ix = glattice.master_start[ip]; ix <= glattice.master_end[ip]; ix++) {
-                    for (int mu = 0; mu < 4; mu++) {
-                        suNg *u = ((HYP->ptr) + coord_to_index(ix, mu));
-                        suNf *Ru = ((HYP_f->ptr) + coord_to_index(ix, mu));
-                        _group_represent2(Ru, u);
-                    }
-                }
-            }
-
-            /* wait gauge field transfer */
-            complete_sendrecv_suNg_field(HYP);
-
-            /* loop on the rest of master sites */
-            _OMP_PRAGMA(_omp_parallel)
-            for (int ip = glattice.local_master_pieces; ip < glattice.total_gauge_master_pieces; ip++) {
-                _OMP_PRAGMA(_omp_for)
-                for (int ix = glattice.master_start[ip]; ix <= glattice.master_end[ip]; ix++) {
-                    for (int mu = 0; mu < 4; mu++) {
-                        suNg *u = ((HYP->ptr) + coord_to_index(ix, mu));
-                        suNf *Ru = ((HYP_f->ptr) + coord_to_index(ix, mu));
-                        _group_represent2(Ru, u);
-                    }
-                }
-            }
-
-            apply_BCs_on_represented_gauge_field();
-
-            /* wait gauge field transfer */
-            complete_sendrecv_suNg_field(HYP);
-            if (first_time) {
-                first_time = 0;
-                HYP_f = (suNf_field *)((void *)HYP);
-            }
+            represent_smeared_field(HYP, HYP_f);
         }
         // END REPRESENTING SMEARED GAUGE FIELD
     }
