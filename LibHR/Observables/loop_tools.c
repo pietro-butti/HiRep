@@ -515,14 +515,9 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
 #endif
             zero_spinor_field(prop + i);
         }
-<<<<<<< HEAD
     }
 
     spinor_field *source1;
-=======
-    }    
-    spinor_field * source1;
->>>>>>> fbb793d5 (Committing old things)
     suNg_field *HYP = NULL;
     suNf_field *HYP_f = NULL;
     
