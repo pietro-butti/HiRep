@@ -515,11 +515,17 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
 #endif
             zero_spinor_field(prop + i);
         }
+<<<<<<< HEAD
     }
 
     spinor_field *source1;
+=======
+    }    
+    spinor_field * source1;
+>>>>>>> fbb793d5 (Committing old things)
     suNg_field *HYP = NULL;
     suNf_field *HYP_f = NULL;
+    
     if (source_type == 6) {
         source1 = alloc_spinor_field(4, &glattice);
         HYP = alloc_suNg_field(&glattice);
