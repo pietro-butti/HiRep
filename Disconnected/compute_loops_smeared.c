@@ -140,8 +140,8 @@ int main(int argc, char *argv[]) {
 
         lprintf("MAIN", 0, "Configuration from %s\n", cnfg_filename);
 
-        unit_u(u_gauge);
-        // read_gauge_field(cnfg_filename);
+        // unit_u(u_gauge);
+        read_gauge_field(cnfg_filename);
         // copy_suNg_field(HYP,u_gauge);
 
         represent_gauge_field();

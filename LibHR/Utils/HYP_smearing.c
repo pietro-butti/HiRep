@@ -12,9 +12,9 @@ static void project_on_suN(suNg *A) {
 #else
 //#error ERROR: The cooling parameter must be chosen!!!
 static void project_on_suN(suNg *A) {
-    error(1, 1, "project_on_suN", "Error function only defined for NG=2");
+    covariant_project_to_suNg(A);
+    // error(1, 1, "project_on_suN", "Error function only defined for NG=2");
 }
-
 #endif
 
 static int two_to_index[4][4];

@@ -526,7 +526,6 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
         HYP = alloc_suNg_field(&glattice);
         HYP_f = alloc_suNf_field(&glattice);
 
-        lprintf("CORR", 0, "SMEARING DONEEEEEEEEEEEE\n");
         if (HYP_weight == NULL) {
             copy_suNg_field(HYP, u_gauge);
             copy_suNf_field(HYP_f, u_gauge_f);
@@ -691,9 +690,10 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
         } /* volume source + spin + color + eo  dilution  */
 
         if (source_type == 6) {
+
             for (tau = 0; tau < GLB_T; ++tau) {
                 create_diluted_source_equal_atau(source, tau);
-
+                
                 for (int ismr = 0; ismr < n_smr; ismr++) {
                     for (int beta = 0; beta < 4; beta++) {
                         gaussian_smearing(&source1[beta], &source[beta], HYP_f, alpha);
@@ -702,7 +702,7 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
                         gaussian_smearing(&source[beta], &source1[beta], HYP_f, alpha);
                     }
                 }
-
+                
                 calc_propagator(prop, source, 4); //4 for spin dilution
 #ifdef WITH_GPU
                 for (int beta = 0; beta < 4; beta++) {
