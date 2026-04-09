@@ -13,6 +13,43 @@
 #include "random.h"
 #include "inverters.h"
 
+
+void represent_smeared_field(suNg_field *HYP, suNf_field *HYP_f) {
+    /* loop on local lattice first */
+    /* loop on the rest of master sites */
+    _OMP_PRAGMA(_omp_parallel)
+    for (int ip = 0; ip < glattice.local_master_pieces; ip++) {
+        _OMP_PRAGMA(_omp_for)
+        for (int ix = glattice.master_start[ip]; ix <= glattice.master_end[ip]; ix++) {
+            for (int mu = 0; mu < 4; mu++) {
+                suNg *u = ((HYP->ptr) + coord_to_index(ix, mu));
+                suNf *Ru = ((HYP_f->ptr) + coord_to_index(ix, mu));
+                _group_represent2(Ru, u);
+            }
+        }
+    }
+
+    /* wait gauge field transfer */
+    complete_sendrecv_suNg_field(u_gauge);
+
+    /* loop on the rest of master sites */
+    _OMP_PRAGMA(_omp_parallel)
+    for (int ip = glattice.local_master_pieces; ip < glattice.total_gauge_master_pieces; ip++) {
+        _OMP_PRAGMA(_omp_for)
+        for (int ix = glattice.master_start[ip]; ix <= glattice.master_end[ip]; ix++) {
+            for (int mu = 0; mu < 4; mu++) {
+                suNg *u = ((HYP->ptr) + coord_to_index(ix, mu));
+                suNf *Ru = ((HYP_f->ptr) + coord_to_index(ix, mu));
+                _group_represent2(Ru, u);
+            }
+        }
+    }
+
+    // WARNING THIS WORKS ONLY FOR PERIODIC BC ON SMEARED FIELDS
+    // apply_BCs_on_represented_gauge_field();
+}
+
+
 // TODO: port these (over copies...)
 static void fix_T_bc(int tau) {
     int index;
@@ -457,6 +494,112 @@ void measure_spectrum_semwall_fixedbc(int dt, int nm, double *m, int nhits, int 
     free_spinor_field(prop);
     free_suNf_field(u_gauge_old);
     free_propagator_eo();
+}
+
+void measure_spectrum_semwall_smeared(int nm, double *m, int nhits, int conf_num, double precision, double alpha,
+                                      int n_smr, double *HYP_weight, storage_switch swc, data_storage_array **ret) {
+    spinor_field *source  = alloc_spinor_field(4, &glattice);
+    spinor_field *source1 = alloc_spinor_field(4, &glattice);
+    spinor_field *prop = alloc_spinor_field(4 * nm, &glattice);
+
+    spinor_field *source_smeared = alloc_spinor_field(4, &glattice);
+    spinor_field *prop_smeared = alloc_spinor_field(4 * nm, &glattice);
+
+    suNg_field *HYP = NULL;
+    suNf_field *HYP_f = NULL;
+    HYP = alloc_suNg_field(&glattice);
+    HYP_f = alloc_suNf_field(&glattice);
+
+    if (HYP_weight == NULL) {
+        copy_suNg_field(HYP, u_gauge);
+        copy_suNf_field(HYP_f, u_gauge_f);
+    } else { // REPRESENT SMEARED GAUGE FIELD
+        HYP_smearing(HYP, u_gauge, HYP_weight);
+        represent_smeared_field(HYP, HYP_f);
+    }
+
+    // init data storage here
+    if (swc == STORE) {
+        int idx[4] = { nm, 16, GLB_T, 2 };
+        *ret = allocate_data_storage_array(1);
+        allocate_data_storage_element(*ret, 0, 4, idx); // ( 1 ) * (nmom^3*ngamma*GLB_T * 2 reals )
+        lprintf("MAIN", 0, "data_storage_element allocated !\n");
+    }
+    for (int i = 0; i < 4 * nm; i++) {
+#ifdef WITH_GPU
+        zero_spinor_field_cpu(prop + i);
+#endif
+        zero_spinor_field(prop + i);
+    }
+
+    int tau, k;
+    init_propagator_eo(nm, m, precision);
+    for (k = 0; k < nhits; ++k) {
+        tau = create_diluted_source_equal_eo(source);
+
+        for (int ismr = 0; ismr < n_smr; ismr++) {
+            for (int beta = 0; beta < 4; beta++) {
+                gaussian_smearing(&source1[beta], &source[beta], HYP_f, alpha);
+            }
+            for (int beta = 0; beta < 4; beta++) {
+                gaussian_smearing(&source[beta], &source1[beta], HYP_f, alpha);
+            }
+        }
+
+        calc_propagator_eo(prop, source, 4); // 4 for spin dilution
+#ifdef WITH_GPU
+        for (int beta = 0; beta < 4; beta++) {
+            copy_from_gpu(prop + beta);
+        }
+#endif
+
+        for (int ismr = 0; ismr < n_smr; ismr++) {
+            for (int beta = 0; beta < 4; beta++) {
+                gaussian_smearing(&prop_smeared[beta], &prop[beta], HYP_f, alpha);
+            }
+            for (int beta = 0; beta < 4; beta++) {
+                gaussian_smearing(&prop[beta], &prop_smeared[beta], HYP_f, alpha);
+            }
+        }
+
+        measure_mesons(meson_correlators, prop, source, nm, tau);
+    }
+
+    if (swc == STORE) {
+        double norm = -(1. / (nhits * GLB_VOL3 / 2.)) / GLB_VOL3;
+        meson_observable *motmp = meson_correlators;
+
+        int iG = 0;
+        while (motmp != NULL) {
+            global_sum(motmp->corr_re, motmp->corr_size);
+            global_sum(motmp->corr_im, motmp->corr_size);
+            for (int i = 0; i < motmp->corr_size; i++) {
+                motmp->corr_re[i] *= norm;
+                motmp->corr_im[i] *= norm;
+            }
+            for (int im = 0; im < nm; im++) {
+                if (motmp->ind1 == motmp->ind2) {
+                    for (int t = 0; t < GLB_T; ++t) {
+                        lprintf("MAIN", 0, " im = %d, iG=%d, t=%d  %3.10e\n", im, iG, t,
+                                motmp->corr_re[corr_ind(0, 0, 0, 1, t, nm, im)]);
+                        int idx[4] = { im, iG, t, 0 };
+                        *data_storage_element(*ret, 0, idx) = motmp->corr_re[corr_ind(0, 0, 0, 1, t, nm, im)];
+                        idx[3] = 1;
+                        *data_storage_element(*ret, 0, idx) = motmp->corr_im[corr_ind(0, 0, 0, 1, t, nm, im)];
+                    }
+                }
+            }
+            iG += 1;
+            motmp = motmp->next;
+        }
+    }
+
+    print_mesons(meson_correlators, nhits * GLB_VOL3 / 2., conf_num, nm, m, GLB_T, 1, "DEFAULT_SEMWALL");
+    free_propagator_eo();
+    free_spinor_field(source);
+    free_spinor_field(source_smeared);
+    free_spinor_field(prop);
+    free_spinor_field(prop_smeared);
 }
 
 /****************************************

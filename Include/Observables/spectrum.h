@@ -33,6 +33,8 @@ extern "C" {
 //meson_measurements.c
 void measure_spectrum_semwall(int nm, double *m, int nhits, int conf_num, double precision, storage_switch swc,
                               data_storage_array **ret);
+void measure_spectrum_semwall_smeared(int nm, double *m, int nhits, int conf_num, double precision, double alpha,
+                                      int n_smr, double *HYP_weight, storage_switch swc, data_storage_array **ret);
 void measure_spectrum_discon_semwall(int nm, double *m, int nhits, int conf_num, double precision, storage_switch swc,
                                      data_storage_array **ret);
 void measure_spectrum_discon_gfwall(int nm, double *m, int conf_num, double precision, storage_switch swc,

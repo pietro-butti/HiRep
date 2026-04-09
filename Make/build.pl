@@ -141,6 +141,7 @@ my @libs = ("libhrobservables.a", "libhr.a", "libhrobservables.a"); #order is im
     "mk_mesons_with_z2semwall_new" => [ "mk_mesons_with_z2semwall_new.c", ],
     "measure_formfactor" => [ "measure_formfactor.c", ],
     "measure_spectrum" => [ "measure_spectrum.c", ],
+    "measure_spectrum_smeared" => [ "measure_spectrum_smeared.c", ],
     "mk_sfcorrelators" => [ "mk_sfcorrelators.c", ],
     "mk_obs" => [ "mk_obs.c", ],
     "mk_mesons" => [ "mk_mesons.c", ],
