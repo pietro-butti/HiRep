@@ -194,6 +194,7 @@ int main(int argc, char *argv[]) {
 
     lprintf("MAIN", 0, "Number of noisy sources per cnfg = %d. Does not affect point sources\n", mes_var.nhits_2pt);
     if (mes_var.def_semwall) { lprintf("MAIN", 0, "Spin Explicit Method (SEM) wall sources\n"); }
+    if (mes_var.def_semwall_smeared) { lprintf("MAIN", 0, "Spin Explicit Method (SEM) wall sources w/ Gaussian smearing \n"); }
     if (mes_var.def_point) { lprintf("MAIN", 0, "Point sources\n"); }
     if (mes_var.def_baryon) { lprintf("MAIN", 0, "Baryon masses\n"); }
     if (mes_var.def_glueball) { lprintf("MAIN", 0, "Glueball masses\n"); }
@@ -281,8 +282,6 @@ int main(int argc, char *argv[]) {
                 measure_spectrum_semwall(nm, m, mes_var.nhits_2pt, i, mes_var.precision, DONTSTORE, NULL);
             }
             if (mes_var.def_semwall_smeared) {
-                // void measure_spectrum_semwall_smeared(int nm, double *m, int nhits, int conf_num, double precision, double alpha,
-                //                       int n_smr, double *HYP_weight, storage_switch swc, data_storage_array **ret) 
                 measure_spectrum_semwall_smeared(nm, m, mes_var.nhits_2pt, i, mes_var.precision, 
                     mes_var.alpha, mes_var.n_smr, HYP_var.weight, DONTSTORE, NULL);
             }
