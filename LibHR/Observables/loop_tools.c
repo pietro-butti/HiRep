@@ -43,7 +43,7 @@ void represent_smeared_field(suNg_field *HYP, suNf_field *HYP_f) {
     }
 
     /* wait gauge field transfer */
-    complete_sendrecv_suNg_field(u_gauge);
+    complete_sendrecv_suNg_field(HYP);
 
     /* loop on the rest of master sites */
     _OMP_PRAGMA(_omp_parallel)

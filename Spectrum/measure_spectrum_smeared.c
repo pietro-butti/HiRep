@@ -242,7 +242,7 @@ int main(int argc, char *argv[]) {
     init_cvc_correlators();
     if (four_fermion_active == 1) { init_triplet_discon_correlators(); }
 
-    HYP = alloc_suNg_field(&glattice);
+    // HYP = alloc_suNg_field(&glattice);
 
     i = 0;
 

@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
     lprintf("MAIN", 0, "Number of Gaussian smearing levels = %d\n", disc_var.n_smr);
     lprintf("MAIN", 0, "Smearing parameter alpha = %f\n", disc_var.alpha);
 
-    HYP = alloc_suNg_field(&glattice);
+    // HYP = alloc_suNg_field(&glattice);
 
     i = 0;
     while (++i) {
