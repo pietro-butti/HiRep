@@ -532,6 +532,7 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
         } else { // REPRESENT SMEARED GAUGE FIELD
             HYP_smearing(HYP, u_gauge, HYP_weight);
             represent_smeared_field(HYP, HYP_f);
+            lprintf("MAIN", 0, "USING HYP SMEARED GAUGE FIELDS !\n");
         }
         // END REPRESENTING SMEARED GAUGE FIELD
     }

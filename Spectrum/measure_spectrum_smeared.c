@@ -157,8 +157,6 @@ int main(int argc, char *argv[]) {
     int nm;
     double m[256];
 
-    static suNg_field *HYP;
-
     /* setup process communications */
     setup_process(&argc, &argv);
 
@@ -243,8 +241,6 @@ int main(int argc, char *argv[]) {
     init_cvc_correlators();
     if (four_fermion_active == 1) { init_triplet_discon_correlators(); }
 
-    // HYP = alloc_suNg_field(&glattice);
-
     i = 0;
 
     while (++i) {
@@ -257,8 +253,6 @@ int main(int argc, char *argv[]) {
         lprintf("MAIN", 0, "Configuration from %s\n", cnfg_filename);
         read_gauge_field(cnfg_filename);
 
-        // HYP_smearing(HYP, u_gauge, HYP_var.weight);
-        // copy_suNg_field(u_gauge, HYP);
         represent_gauge_field();
 
         lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
@@ -270,9 +264,6 @@ int main(int argc, char *argv[]) {
         }
         full_plaquette();
         gettimeofday(&start, 0);
-
-        lprintf("CORR", 0, "Number of Gaussian smearing levels = %d\n", mes_var.n_smr);
-        lprintf("CORR", 0, "Smearing parameter alpha = %f\n", mes_var.alpha);
 
         if (four_fermion_active == 1) { ff_observables(); }
 
@@ -350,7 +341,6 @@ int main(int argc, char *argv[]) {
 
     if (four_fermion_active == 1) { free_triplet_discon_observables(); }
 
-    free_suNg_field(HYP);
     free_suNg_field(u_gauge);
 #ifdef ALLOCATE_REPR_GAUGE_FIELD
     free_suNf_field(u_gauge_f);

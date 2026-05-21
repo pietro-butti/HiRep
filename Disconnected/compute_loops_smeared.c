@@ -96,8 +96,6 @@ int main(int argc, char *argv[]) {
     char list_filename[256] = "";
     char cnfg_filename[256] = "";
     
-    static suNg_field *HYP;
-
     Timer clock;
     timer_set(&clock);
     /* setup process id and communications */
@@ -130,8 +128,6 @@ int main(int argc, char *argv[]) {
     lprintf("MAIN", 0, "Number of Gaussian smearing levels = %d\n", disc_var.n_smr);
     lprintf("MAIN", 0, "Smearing parameter alpha = %f\n", disc_var.alpha);
 
-    // HYP = alloc_suNg_field(&glattice);
-
     i = 0;
     while (++i) {
         if (list != NULL) {
@@ -142,7 +138,6 @@ int main(int argc, char *argv[]) {
 
         // unit_u(u_gauge);
         read_gauge_field(cnfg_filename);
-        // copy_suNg_field(HYP,u_gauge);
 
         represent_gauge_field();
 
@@ -150,9 +145,6 @@ int main(int argc, char *argv[]) {
         full_plaquette();
 
         lprintf("CORR", 0, "Number of noise vector : nhits = %i \n", disc_var.nhits);
-        lprintf("CORR", 0, "Number of Gaussian smearing levels = %d\n", disc_var.n_smr);
-        lprintf("CORR", 0, "Smearing parameter alpha = %f\n", disc_var.alpha);
-        lprintf("CORR", 0, "SCEMOOOOOOOOOO\n");
         measure_loops_smeared(m, disc_var.nhits, i, disc_var.precision, disc_var.source_type, disc_var.n_mom, disc_var.n_smr,
                               disc_var.alpha, HYP_var.weight, DONTSTORE, NULL);
 

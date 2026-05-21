@@ -513,9 +513,11 @@ void measure_spectrum_semwall_smeared(int nm, double *m, int nhits, int conf_num
     if (HYP_weight == NULL) {
         copy_suNg_field(HYP, u_gauge);
         copy_suNf_field(HYP_f, u_gauge_f);
+        lprintf("MAIN", 0, "*NOT* USING SMEARED GAUGE FIELDS !\n");
     } else { // REPRESENT SMEARED GAUGE FIELD
         HYP_smearing(HYP, u_gauge, HYP_weight);
         represent_smeared_field(HYP, HYP_f);
+        lprintf("MAIN", 0, "USING HYP SMEARED GAUGE FIELDS !\n");
     }
 
     // init data storage here
