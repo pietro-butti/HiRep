@@ -157,7 +157,6 @@ int main(int argc, char *argv[]) {
     lprintf("TIMING", 0, "Inversions and contractions for configuration  [%s] done [%lf sec]\n", cnfg_filename, elapsed_sec);
 
     /* close communications */
-    free_suNg_field(HYP);
     finalize_process();
 
     return 0;

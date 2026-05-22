@@ -720,7 +720,12 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
         represent_gauge_field();
         free_suNg_field(u_gauge_old);
     }
+    if (HYP != NULL){
+        free_suNg_field(HYP);
+        free_suNf_field(HYP_f);
+    }
     free_spinor_field(source);
+    free_spinor_field(source1);
     free_spinor_field(prop);
     free_propagator_eo();
     gettimeofday(&end, 0);
