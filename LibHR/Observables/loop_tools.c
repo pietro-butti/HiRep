@@ -536,6 +536,7 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
         if (HYP_weight == NULL) {
             copy_suNg_field(HYP, u_gauge);
             copy_suNf_field(HYP_f, u_gauge_f);
+            lprintf("MAIN", 0, "Using default gauge fields !\n");
         } else { // REPRESENT SMEARED GAUGE FIELD
             HYP_smearing(HYP, u_gauge, HYP_weight);
             represent_smeared_field(HYP, HYP_f);
@@ -750,7 +751,7 @@ void apply_g5_4spinorfield(spinor_field *out, spinor_field *in) {
 }
 
 void measure_loops_spliteven(double *m_s, double *m_r, int nhits, int conf_num, double precision, int source_type, int n_mom, int n_smr,
-                           double alpha, double *HYP_weight, double *delta_m, storage_switch swc, data_storage_array **ret) {
+                           double alpha, double *HYP_weight, storage_switch swc, data_storage_array **ret) {
     int k, l;
     int n_spinor;
     int eo, tau, col;
