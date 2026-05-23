@@ -268,6 +268,7 @@ my @libs = ("libhrobservables.a", "libhr.a", "libhrobservables.a"); #order is im
   my %exes = (
     "compute_loops" => [ "compute_loops.c", ],
     "compute_loops_smeared" => [ "compute_loops_smeared.c", ],
+    "compute_loops_spliteven" => [ "compute_loops_spliteven.c", ],
   );
 
   add_exes($topdir, \%exes, \@libs);

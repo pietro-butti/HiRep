@@ -59,3 +59,6 @@ LibHR/Utils/cinfo.h
 #docker/devcontainer
 .devcontainer/reinstall-cmake.sh
 .github/dependabot.yml
+
+Zpietro
+ZPietro/*
