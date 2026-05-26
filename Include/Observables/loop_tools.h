@@ -28,8 +28,9 @@ void measure_loops(double *m, int nhits, int conf_num, double precision, int sou
                    data_storage_array **ret);
 void measure_loops_smeared(double *m, int nhits, int conf_num, double precision, int source_type, int n_mom, int n_smr,
                            double alpha, double *HYP_weight, storage_switch swc, data_storage_array **ret);
-void measure_loops_spliteven(double *m_s, double *m_r, int nhits, int conf_num, double precision, int source_type, int n_mom, int n_smr,
-                           double alpha, double *HYP_weight, storage_switch swc, data_storage_array **ret);
+void measure_loops_spliteven(double *masses, int n_masses, int nhits, double precision, int n_smr, double alpha, 
+                        double *HYP_weight, storage_switch swc, data_storage_array **ret);
+
 
 #ifdef __cplusplus
 }

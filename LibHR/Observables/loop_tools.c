@@ -27,6 +27,11 @@
 #error This code does not work with the fermion twisting !!!
 #endif
 
+void apply_g5_4spinorfield(spinor_field *out, spinor_field *in) {
+    for (int beta = 0; beta < 4; beta++)
+        g5_assign_spinor_field(&in[beta]);
+}
+
 void represent_smeared_field(suNg_field *HYP, suNf_field *HYP_f) {
     /* loop on local lattice first */
     /* loop on the rest of master sites */
@@ -742,130 +747,246 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
             etime.tv_sec, etime.tv_usec);
 }
 
-void apply_g5_4spinorfield(spinor_field *out, spinor_field *in) {
-    for (int beta = 0; beta < 4; beta++) {
-        _MASTER_FOR(&glattice, ix) {
-            _spinor_g5_f(*_FIELD_AT(&out[beta], ix), *_FIELD_AT(&in[beta],  ix));
-        }
-    }
-}
 
-void measure_loops_spliteven(double *m_s, double *m_r, int nhits, int conf_num, double precision, int source_type, int n_mom, int n_smr,
-                           double alpha, double *HYP_weight, storage_switch swc, data_storage_array **ret) {
-    int k, l;
-    int n_spinor;
-    int eo, tau, col;
+
+// void measure_loops_spliteven(double *m_s, double *m_r, int nhits, int conf_num, double precision, int source_type, int n_mom, int n_smr,
+//                            double alpha, double *HYP_weight, storage_switch swc, data_storage_array **ret) {
+//     int k, l;
+//     int n_spinor;
+//     int eo, tau, col;
+//     struct timeval start, end, etime;
+
+//     lprintf("CORR", 0, "Split-even telescopic estimator. Time and spin dilution with Gaussian smearing + HYP smearing will be used \n");
+
+//     gettimeofday(&start, 0);
+
+//     // init_propagator_eo(1, m, precision); // re-initialised for every 
+
+//     spinor_field *source;
+//     spinor_field *source1;
+//     spinor_field *g5_source;
+//     spinor_field *prop;
+//     spinor_field *g5_prop;
+
+//     suNg_field *u_gauge_old = NULL;
+//     suNg_field *HYP = NULL;
+//     suNf_field *HYP_f = NULL;
+
+//     source    = alloc_spinor_field(4, &glattice);
+//     g5_source = alloc_spinor_field(4, &glattice);
+//     source1   = alloc_spinor_field(4, &glattice);
+
+//     prop = alloc_spinor_field(4, &glattice);
+//     g5_prop = alloc_spinor_field(4, &glattice);
+//     for (int i = 0; i < 4; i++) {
+// #ifdef WITH_GPU
+//         zero_spinor_field_cpu(prop + i);
+//         zero_spinor_field_cpu(g5_prop + i);
+// #endif
+//         zero_spinor_field(prop + i);
+//         zero_spinor_field(g5_prop + i);
+//     }
+
+//     // HYP SMEARING
+//     HYP = alloc_suNg_field(&glattice);
+//     HYP_f = alloc_suNf_field(&glattice);
+//     if (HYP_weight == NULL) {
+//         copy_suNg_field(HYP, u_gauge);
+//         copy_suNf_field(HYP_f, u_gauge_f);
+//     } else { // REPRESENT SMEARED GAUGE FIELD
+//         HYP_smearing(HYP, u_gauge, HYP_weight);
+//         represent_smeared_field(HYP, HYP_f);
+//         lprintf("MAIN", 0, "USING HYP SMEARED GAUGE FIELDS !\n");
+//     }
+
+//     // STORING 
+//     if (swc == STORE && *ret == NULL) {
+//         int idx[4] = { nhits, 16, GLB_T, 2 };
+//         *ret = allocate_data_storage_array(1);
+//         allocate_data_storage_element(*ret, 0, 4, idx); // ( 1 ) * (nhits*ngamma*GLB_T * 2 reals )
+//     }
+
+//     // MAIN LOOP
+//     for (k = 0; k < nhits; k++) {
+//         lprintf("MAIN", 0, "k = %d/%d source_type=%d\n", k + 1, nhits, source_type);
+//         for (tau = 0; tau < GLB_T; ++tau) {
+//             create_diluted_source_equal_atau(source, tau);
+            
+//             // Smear souce
+//             for (int ismr = 0; ismr < n_smr; ismr++) {
+//                 for (int beta = 0; beta < 4; beta++) {
+//                     gaussian_smearing(&source1[beta], &source[beta], HYP_f, alpha);
+//                 }
+//                 for (int beta = 0; beta < 4; beta++) {
+//                     gaussian_smearing(&source[beta], &source1[beta], HYP_f, alpha);
+//                 }
+//             }
+
+//             // Right solve at m_s
+//             init_propagator_eo(1, m_s, precision); 
+//             calc_propagator(prop, source, 4); 
+//             free_propagator_eo();
+            
+//             // Left solve at m_r
+//             apply_g5_4spinorfield(g5_source,source);
+//             init_propagator_eo(1, m_r, precision); 
+//             calc_propagator(g5_prop, g5_source, 4);
+//             apply_g5_4spinorfield(source1, g5_prop);
+//             free_propagator_eo();
+
+// #ifdef WITH_GPU
+//             for (int beta = 0; beta < 4; beta++) {
+//                 copy_from_gpu(prop + beta);
+//                 copy_from_gpu(source1 + beta);
+//             }
+// #endif
+//             // Contraction
+//             measure_bilinear_loops_4spinorfield(prop, source1, k, tau, -1, -1, swc, ret);
+//         }
+
+//     }
+
+//     if (u_gauge_old != NULL) {
+//         copy_suNg_field(u_gauge, u_gauge_old);
+//         represent_gauge_field();
+//         free_suNg_field(u_gauge_old);
+//     }
+//     free_suNg_field(HYP);
+//     free_suNf_field(HYP_f);
+//     free_spinor_field(source);
+//     free_spinor_field(source1);
+//     free_spinor_field(g5_source);
+//     free_spinor_field(prop);
+//     free_spinor_field(g5_prop);
+
+//     // free_propagator_eo();
+
+//     gettimeofday(&end, 0);
+//     timeval_subtract(&etime, &end, &start);
+//     lprintf("TIMING", 0, "Sources generation, invert and contract for %i sources done [%ld sec %ld usec]\n", nhits,
+//             etime.tv_sec, etime.tv_usec);
+// }
+
+void measure_loops_spliteven(double *masses, int n_masses, int nhits, double precision, int n_smr, double alpha, double *HYP_weight, storage_switch swc, data_storage_array **ret) {
+    int k, tau, beta, gap;
     struct timeval start, end, etime;
 
-    lprintf("CORR", 0, "Split-even telescopic estimator. Time and spin dilution with Gaussian smearing + HYP smearing will be used \n");
-
+    lprintf("CORR", 0, "Split-even telescopic estimator with %d masses\n", n_masses);
     gettimeofday(&start, 0);
 
-    // init_propagator_eo(1, m, precision); // re-initialised for every 
+    /* allocate fields */
+    spinor_field *source    = alloc_spinor_field(4, &glattice);
+    spinor_field *g5_source = alloc_spinor_field(4, &glattice);
+    spinor_field *source1   = alloc_spinor_field(4, &glattice);   /* temp for smearing */
+    spinor_field *phi_all   = alloc_spinor_field(4 * n_masses, &glattice); /* right: D(m_k)^{-1} eta */
+    spinor_field *chi_all   = alloc_spinor_field(4 * n_masses, &glattice); /* left: D(m_k)^{-1} g5 eta */
+    spinor_field *right     = alloc_spinor_field(4, &glattice);   /* contiguous slice for contraction */
+    spinor_field *left      = alloc_spinor_field(4, &glattice);   /* contiguous slice for contraction */
 
-    spinor_field *source;
-    spinor_field *source1;
-    spinor_field *g5_source;
-    spinor_field *prop;
-    spinor_field *g5_prop;
-
-    suNg_field *u_gauge_old = NULL;
-    suNg_field *HYP = NULL;
-    suNf_field *HYP_f = NULL;
-
-    source    = alloc_spinor_field(4, &glattice);
-    g5_source = alloc_spinor_field(4, &glattice);
-    source1   = alloc_spinor_field(4, &glattice);
-
-    prop = alloc_spinor_field(4, &glattice);
-    g5_prop = alloc_spinor_field(4, &glattice);
-    for (int i = 0; i < 4; i++) {
-#ifdef WITH_GPU
-        zero_spinor_field_cpu(prop + i);
-        zero_spinor_field_cpu(g5_prop + i);
-#endif
-        zero_spinor_field(prop + i);
-        zero_spinor_field(g5_prop + i);
+    for (int i = 0; i < 4 * n_masses; i++) {
+        zero_spinor_field(&phi_all[i]);
+        zero_spinor_field(&chi_all[i]);
     }
 
-    // HYP SMEARING
-    HYP = alloc_suNg_field(&glattice);
-    HYP_f = alloc_suNf_field(&glattice);
+    /* HYP smearing setup */
+    suNg_field *HYP   = alloc_suNg_field(&glattice);
+    suNf_field *HYP_f = alloc_suNf_field(&glattice);
     if (HYP_weight == NULL) {
         copy_suNg_field(HYP, u_gauge);
         copy_suNf_field(HYP_f, u_gauge_f);
-    } else { // REPRESENT SMEARED GAUGE FIELD
+    } else {
         HYP_smearing(HYP, u_gauge, HYP_weight);
         represent_smeared_field(HYP, HYP_f);
-        lprintf("MAIN", 0, "USING HYP SMEARED GAUGE FIELDS !\n");
+        lprintf("MAIN", 0, "USING HYP SMEARED GAUGE FIELDS!\n");
     }
 
-    // STORING 
+    /* storage */
     if (swc == STORE && *ret == NULL) {
         int idx[4] = { nhits, 16, GLB_T, 2 };
         *ret = allocate_data_storage_array(1);
-        allocate_data_storage_element(*ret, 0, 4, idx); // ( 1 ) * (nhits*ngamma*GLB_T * 2 reals )
+        allocate_data_storage_element(*ret, 0, 4, idx);
     }
 
-    // MAIN LOOP
+    /* initialise multishift propagator ONCE with ALL masses */
+    init_propagator_eo(n_masses, masses, precision);
+
+    /* main loop */
     for (k = 0; k < nhits; k++) {
-        lprintf("MAIN", 0, "k = %d/%d source_type=%d\n", k + 1, nhits, source_type);
-        for (tau = 0; tau < GLB_T; ++tau) {
+        lprintf("MAIN", 0, "k = %d/%d\n", k + 1, nhits);
+
+        for (tau = 0; tau < GLB_T; tau++) {
+
             create_diluted_source_equal_atau(source, tau);
-            
-            // Smear souce
+
+            /* Gaussian smearing */
             for (int ismr = 0; ismr < n_smr; ismr++) {
-                for (int beta = 0; beta < 4; beta++) {
+                for (beta = 0; beta < 4; beta++)
                     gaussian_smearing(&source1[beta], &source[beta], HYP_f, alpha);
-                }
-                for (int beta = 0; beta < 4; beta++) {
+                for (beta = 0; beta < 4; beta++)
                     gaussian_smearing(&source[beta], &source1[beta], HYP_f, alpha);
-                }
             }
 
-            // Right solve at m_s
-            init_propagator_eo(1, m_s, precision); 
-            calc_propagator(prop, source, 4); 
-            free_propagator_eo();
-            
-            // Left solve at m_r
-            apply_g5_4spinorfield(g5_source,source);
-            init_propagator_eo(1, m_r, precision); 
-            calc_propagator(g5_prop, g5_source, 4);
-            apply_g5_4spinorfield(source1, g5_prop);
-            free_propagator_eo();
+            /* g5_source = gamma5 * source */
+            apply_g5_4spinorfield(g5_source, source);
+
+            /* one multishift call gives all right propagators:
+               phi_all[beta * n_masses + i] = D(m[i])^{-1} source[beta] */
+            calc_propagator_eo(phi_all, source, 4);
+
+            /* one multishift call gives all left propagators:
+               chi_all[beta * n_masses + i] = D(m[i])^{-1} g5_source[beta] */
+            calc_propagator_eo(chi_all, g5_source, 4);
+
+            /* apply gamma5 in-place to all chi_all:
+               chi_all[i] -> gamma5 D(m[i])^{-1} gamma5 source[beta]  (the left field) */
+            for (int i = 0; i < 4 * n_masses; i++)
+                g5_assign_spinor_field(&chi_all[i]);
 
 #ifdef WITH_GPU
-            for (int beta = 0; beta < 4; beta++) {
-                copy_from_gpu(prop + beta);
-                copy_from_gpu(source1 + beta);
+            for (int i = 0; i < 4 * n_masses; i++) {
+                copy_from_gpu(&phi_all[i]);
+                copy_from_gpu(&chi_all[i]);
             }
 #endif
-            // Contraction
-            measure_bilinear_loops_4spinorfield(prop, source1, k, tau, -1, -1, swc, ret);
+
+            /* loop over mass gaps */
+            for (gap = 0; gap < n_masses - 1; gap++) {
+                double delta_m = masses[gap + 1] - masses[gap];
+
+                /* extract contiguous arrays for the contraction.
+                   phi_all and chi_all have stride n_masses between spin components,
+                   so we copy into right[4] and left[4]. 
+                   prefactor delta_m is absorbed into right. */
+                for (beta = 0; beta < 4; beta++) {
+                    /* right[beta] = delta_m * phi_all[beta * n_masses + (gap+1)] */
+                    mul_spinor_field(&right[beta], delta_m,
+                                     &phi_all[beta * n_masses + (gap + 1)]);
+                    /* left[beta]  = chi_all[beta * n_masses + gap]  (g5 already applied) */
+                    copy_spinor_field(&left[beta],
+                                      &chi_all[beta * n_masses + gap]);
+                }
+
+                /* split-even contraction */
+                measure_bilinear_loops_4spinorfield(right, left, k, tau, gap, -1, swc, ret);
+            }
         }
-
     }
 
-    if (u_gauge_old != NULL) {
-        copy_suNg_field(u_gauge, u_gauge_old);
-        represent_gauge_field();
-        free_suNg_field(u_gauge_old);
-    }
+    free_propagator_eo();
     free_suNg_field(HYP);
     free_suNf_field(HYP_f);
     free_spinor_field(source);
     free_spinor_field(source1);
     free_spinor_field(g5_source);
-    free_spinor_field(prop);
-    free_spinor_field(g5_prop);
-
-    // free_propagator_eo();
+    free_spinor_field(phi_all);
+    free_spinor_field(chi_all);
+    free_spinor_field(right);
+    free_spinor_field(left);
 
     gettimeofday(&end, 0);
     timeval_subtract(&etime, &end, &start);
-    lprintf("TIMING", 0, "Sources generation, invert and contract for %i sources done [%ld sec %ld usec]\n", nhits,
-            etime.tv_sec, etime.tv_usec);
+    lprintf("TIMING", 0, "Split-even telescopic for %i sources done [%ld sec %ld usec]\n",
+            nhits, etime.tv_sec, etime.tv_usec);
 }
 
 void measure_bilinear_loops_spinorfield(spinor_field *prop, spinor_field *source, int src_id, int n_mom, storage_switch swc,
