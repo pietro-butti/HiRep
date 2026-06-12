@@ -269,6 +269,7 @@ my @libs = ("libhrobservables.a", "libhr.a", "libhrobservables.a"); #order is im
     "compute_loops" => [ "compute_loops.c", ],
     "compute_loops_smeared" => [ "compute_loops_smeared.c", ],
     "compute_loops_spliteven" => [ "compute_loops_spliteven.c", ],
+    "test_spliteven" => [ "test_spliteven.c", ],
   );
 
   add_exes($topdir, \%exes, \@libs);
@@ -358,17 +359,3 @@ my @libs = ("libhrobservables.a", "libhr.a", "libhrobservables.a"); #order is im
   print "default $topdir\n";
 }
 
-###############################################################################
-# Disconnected
-###############################################################################
-{
-  my $topdir = "ZPietro";
-  my %exes = (
-    "measure_spectrum_smeared" => [ "measure_spectrum_smeared.c", ],
-    "measure_spectrum_smeared_hyp" => [ "measure_spectrum_smeared_hyp.c", ],
-    "compute_loops_smeared_hyp" => [ "compute_loops_smeared_hyp.c", ],
-  );
-
-  add_exes($topdir, \%exes, \@libs);
-  print "default $topdir\n";
-}

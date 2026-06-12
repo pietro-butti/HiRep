@@ -106,27 +106,27 @@ int main(int argc, char *argv[]) {
 
     init_BCs(NULL);
 
-    // i = 0;
-    // while (++i) {
-    //     if (list != NULL) {
-    //         if (fscanf(list, "%s", cnfg_filename) == 0 || feof(list)) break;
-    //     }
+    i = 0;
+    while (++i) {
+        if (list != NULL) {
+            if (fscanf(list, "%s", cnfg_filename) == 0 || feof(list)) break;
+        }
 
-    //     lprintf("MAIN", 0, "Configuration from %s\n", cnfg_filename);
-    //     read_gauge_field(cnfg_filename);
-    //     represent_gauge_field();
+        lprintf("MAIN", 0, "Configuration from %s\n", cnfg_filename);
+        read_gauge_field(cnfg_filename);
+        represent_gauge_field();
 
-    //     lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
-    //     full_plaquette();
+        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
+        full_plaquette();
 
-    //     measure_loops_spliteven(masses, n_masses, disc_var.nhits, disc_var.precision,
-    //                             disc_var.n_smr, disc_var.alpha, hyp,
-    //                             DONTSTORE, NULL);
+        measure_loops_spliteven(masses, n_masses, disc_var.nhits, disc_var.precision,
+                                disc_var.n_smr, disc_var.alpha, hyp,
+                                DONTSTORE, NULL);
 
-    //     if (list == NULL) break;
-    // }
+        if (list == NULL) break;
+    }
 
-    // if (list != NULL) fclose(list);
+    if (list != NULL) fclose(list);
 
     double elapsed = timer_lap(&clock) * 1.e-6;
     lprintf("TIMING", 0, "Done [%lf sec]\n", elapsed);

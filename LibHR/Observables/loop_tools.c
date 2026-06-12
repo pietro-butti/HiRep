@@ -29,7 +29,7 @@
 
 void apply_g5_4spinorfield(spinor_field *out, spinor_field *in) {
     for (int beta = 0; beta < 4; beta++)
-        g5_assign_spinor_field(&in[beta]);
+        g5_spinor_field(&out[beta], &in[beta]);
 }
 
 void represent_smeared_field(suNg_field *HYP, suNf_field *HYP_f) {
@@ -706,6 +706,7 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
         if (source_type == 6) {
 
             for (tau = 0; tau < GLB_T; ++tau) {
+                // create_diluted_source_equal_atau(source, tau);
                 create_diluted_source_equal_atau(source, tau);
                 
                 for (int ismr = 0; ismr < n_smr; ismr++) {
@@ -747,127 +748,8 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
             etime.tv_sec, etime.tv_usec);
 }
 
-
-
-// void measure_loops_spliteven(double *m_s, double *m_r, int nhits, int conf_num, double precision, int source_type, int n_mom, int n_smr,
-//                            double alpha, double *HYP_weight, storage_switch swc, data_storage_array **ret) {
-//     int k, l;
-//     int n_spinor;
-//     int eo, tau, col;
-//     struct timeval start, end, etime;
-
-//     lprintf("CORR", 0, "Split-even telescopic estimator. Time and spin dilution with Gaussian smearing + HYP smearing will be used \n");
-
-//     gettimeofday(&start, 0);
-
-//     // init_propagator_eo(1, m, precision); // re-initialised for every 
-
-//     spinor_field *source;
-//     spinor_field *source1;
-//     spinor_field *g5_source;
-//     spinor_field *prop;
-//     spinor_field *g5_prop;
-
-//     suNg_field *u_gauge_old = NULL;
-//     suNg_field *HYP = NULL;
-//     suNf_field *HYP_f = NULL;
-
-//     source    = alloc_spinor_field(4, &glattice);
-//     g5_source = alloc_spinor_field(4, &glattice);
-//     source1   = alloc_spinor_field(4, &glattice);
-
-//     prop = alloc_spinor_field(4, &glattice);
-//     g5_prop = alloc_spinor_field(4, &glattice);
-//     for (int i = 0; i < 4; i++) {
-// #ifdef WITH_GPU
-//         zero_spinor_field_cpu(prop + i);
-//         zero_spinor_field_cpu(g5_prop + i);
-// #endif
-//         zero_spinor_field(prop + i);
-//         zero_spinor_field(g5_prop + i);
-//     }
-
-//     // HYP SMEARING
-//     HYP = alloc_suNg_field(&glattice);
-//     HYP_f = alloc_suNf_field(&glattice);
-//     if (HYP_weight == NULL) {
-//         copy_suNg_field(HYP, u_gauge);
-//         copy_suNf_field(HYP_f, u_gauge_f);
-//     } else { // REPRESENT SMEARED GAUGE FIELD
-//         HYP_smearing(HYP, u_gauge, HYP_weight);
-//         represent_smeared_field(HYP, HYP_f);
-//         lprintf("MAIN", 0, "USING HYP SMEARED GAUGE FIELDS !\n");
-//     }
-
-//     // STORING 
-//     if (swc == STORE && *ret == NULL) {
-//         int idx[4] = { nhits, 16, GLB_T, 2 };
-//         *ret = allocate_data_storage_array(1);
-//         allocate_data_storage_element(*ret, 0, 4, idx); // ( 1 ) * (nhits*ngamma*GLB_T * 2 reals )
-//     }
-
-//     // MAIN LOOP
-//     for (k = 0; k < nhits; k++) {
-//         lprintf("MAIN", 0, "k = %d/%d source_type=%d\n", k + 1, nhits, source_type);
-//         for (tau = 0; tau < GLB_T; ++tau) {
-//             create_diluted_source_equal_atau(source, tau);
-            
-//             // Smear souce
-//             for (int ismr = 0; ismr < n_smr; ismr++) {
-//                 for (int beta = 0; beta < 4; beta++) {
-//                     gaussian_smearing(&source1[beta], &source[beta], HYP_f, alpha);
-//                 }
-//                 for (int beta = 0; beta < 4; beta++) {
-//                     gaussian_smearing(&source[beta], &source1[beta], HYP_f, alpha);
-//                 }
-//             }
-
-//             // Right solve at m_s
-//             init_propagator_eo(1, m_s, precision); 
-//             calc_propagator(prop, source, 4); 
-//             free_propagator_eo();
-            
-//             // Left solve at m_r
-//             apply_g5_4spinorfield(g5_source,source);
-//             init_propagator_eo(1, m_r, precision); 
-//             calc_propagator(g5_prop, g5_source, 4);
-//             apply_g5_4spinorfield(source1, g5_prop);
-//             free_propagator_eo();
-
-// #ifdef WITH_GPU
-//             for (int beta = 0; beta < 4; beta++) {
-//                 copy_from_gpu(prop + beta);
-//                 copy_from_gpu(source1 + beta);
-//             }
-// #endif
-//             // Contraction
-//             measure_bilinear_loops_4spinorfield(prop, source1, k, tau, -1, -1, swc, ret);
-//         }
-
-//     }
-
-//     if (u_gauge_old != NULL) {
-//         copy_suNg_field(u_gauge, u_gauge_old);
-//         represent_gauge_field();
-//         free_suNg_field(u_gauge_old);
-//     }
-//     free_suNg_field(HYP);
-//     free_suNf_field(HYP_f);
-//     free_spinor_field(source);
-//     free_spinor_field(source1);
-//     free_spinor_field(g5_source);
-//     free_spinor_field(prop);
-//     free_spinor_field(g5_prop);
-
-//     // free_propagator_eo();
-
-//     gettimeofday(&end, 0);
-//     timeval_subtract(&etime, &end, &start);
-//     lprintf("TIMING", 0, "Sources generation, invert and contract for %i sources done [%ld sec %ld usec]\n", nhits,
-//             etime.tv_sec, etime.tv_usec);
-// }
-
-void measure_loops_spliteven(double *masses, int n_masses, int nhits, double precision, int n_smr, double alpha, double *HYP_weight, storage_switch swc, data_storage_array **ret) {
+void measure_loops_spliteven(double *masses, int n_masses, int nhits, double precision, int n_smr, double alpha, 
+                            double *HYP_weight, storage_switch swc, data_storage_array **ret) {
     int k, tau, beta, gap;
     struct timeval start, end, etime;
 
@@ -915,7 +797,6 @@ void measure_loops_spliteven(double *masses, int n_masses, int nhits, double pre
         lprintf("MAIN", 0, "k = %d/%d\n", k + 1, nhits);
 
         for (tau = 0; tau < GLB_T; tau++) {
-
             create_diluted_source_equal_atau(source, tau);
 
             /* Gaussian smearing */
@@ -928,19 +809,20 @@ void measure_loops_spliteven(double *masses, int n_masses, int nhits, double pre
 
             /* g5_source = gamma5 * source */
             apply_g5_4spinorfield(g5_source, source);
-
+ 
             /* one multishift call gives all right propagators:
                phi_all[beta * n_masses + i] = D(m[i])^{-1} source[beta] */
-            calc_propagator_eo(phi_all, source, 4);
+            calc_propagator(phi_all, source, 4);
 
             /* one multishift call gives all left propagators:
                chi_all[beta * n_masses + i] = D(m[i])^{-1} g5_source[beta] */
-            calc_propagator_eo(chi_all, g5_source, 4);
+            calc_propagator(chi_all, g5_source, 4);
 
             /* apply gamma5 in-place to all chi_all:
                chi_all[i] -> gamma5 D(m[i])^{-1} gamma5 source[beta]  (the left field) */
-            for (int i = 0; i < 4 * n_masses; i++)
+            for (int i = 0; i < 4 * n_masses; i++) {
                 g5_assign_spinor_field(&chi_all[i]);
+            }
 
 #ifdef WITH_GPU
             for (int i = 0; i < 4 * n_masses; i++) {
@@ -967,6 +849,7 @@ void measure_loops_spliteven(double *masses, int n_masses, int nhits, double pre
                 }
 
                 /* split-even contraction */
+                /* print gap instead of color index */
                 measure_bilinear_loops_4spinorfield(right, left, k, tau, gap, -1, swc, ret);
             }
         }
