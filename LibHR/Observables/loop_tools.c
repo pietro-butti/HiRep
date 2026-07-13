@@ -706,7 +706,6 @@ void measure_loops_smeared(double *m, int nhits, int conf_num, double precision,
         if (source_type == 6) {
 
             for (tau = 0; tau < GLB_T; ++tau) {
-                // create_diluted_source_equal_atau(source, tau);
                 create_diluted_source_equal_atau(source, tau);
                 
                 for (int ismr = 0; ismr < n_smr; ismr++) {
@@ -850,7 +849,7 @@ void measure_loops_spliteven(double *masses, int n_masses, int nhits, double pre
 
                 /* split-even contraction */
                 /* print gap instead of color index */
-                measure_bilinear_loops_4spinorfield(right, left, k, tau, gap, -1, swc, ret);
+                measure_bilinear_loops_4spinorfield(right, left, k, -1, gap, -1, swc, ret);
             }
         }
     }
