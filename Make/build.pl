@@ -148,7 +148,7 @@ my @libs = ("libhrobservables.a", "libhr.a", "libhrobservables.a"); #order is im
   );
 
   add_exes($topdir, \%exes, \@libs);
-  # print "default $topdir\n";
+  print "default $topdir\n";
 }
 
 ###############################################################################

@@ -64,7 +64,7 @@ static const double mass_m2 = 0.5;
 
 /* Estimator parameters */
 static const double precision   = 1e-9;
-static const int    nhits       = 1000;
+static const int    nhits       = 20;
 static const int    source_type = 6;   /* time + spin dilution + gaussian smearing */
 static const int    n_mom       = 1;
 static const int    n_smr       = 0;

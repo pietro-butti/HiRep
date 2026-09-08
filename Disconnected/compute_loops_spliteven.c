@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     setup_gauge_fields();
 
     read_input(disc_var.read, get_input_filename());
-    // HYP_var.weight[0] = HYP_var.weight[1] = HYP_var.weight[2] = 0.;
+    HYP_var.weight[0] = HYP_var.weight[1] = HYP_var.weight[2] = 0.;
     read_input(HYP_var.read, get_input_filename());
     double *hyp = (HYP_var.weight[0] == 0. && HYP_var.weight[1] == 0. && HYP_var.weight[2] == 0.)
               ? NULL : HYP_var.weight;

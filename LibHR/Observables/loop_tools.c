@@ -810,12 +810,15 @@ void measure_loops_spliteven(double *masses, int n_masses, int nhits, double pre
             apply_g5_4spinorfield(g5_source, source);
  
             /* one multishift call gives all right propagators:
-               phi_all[beta * n_masses + i] = D(m[i])^{-1} source[beta] */
-            calc_propagator(phi_all, source, 4);
+               phi_all[beta * n_masses + i] = D(m[i])^{-1} source[beta].
+               calc_propagator_eo routes to g5QMR_mshift for Wilson (all masses
+               in one Krylov process); under WITH_CLOVER it falls back to
+               calc_propagator (per-mass single shift) -- same layout either way. */
+            calc_propagator_eo(phi_all, source, 4);
 
             /* one multishift call gives all left propagators:
                chi_all[beta * n_masses + i] = D(m[i])^{-1} g5_source[beta] */
-            calc_propagator(chi_all, g5_source, 4);
+            calc_propagator_eo(chi_all, g5_source, 4);
 
             /* apply gamma5 in-place to all chi_all:
                chi_all[i] -> gamma5 D(m[i])^{-1} gamma5 source[beta]  (the left field) */
@@ -847,9 +850,14 @@ void measure_loops_spliteven(double *masses, int n_masses, int nhits, double pre
                                       &chi_all[beta * n_masses + gap]);
                 }
 
-                /* split-even contraction */
-                /* print gap instead of color index */
-                measure_bilinear_loops_4spinorfield(right, left, k, -1, gap, -1, swc, ret);
+                /* split-even contraction.
+                   col slot = gap (mass-gap index), eo slot = tau (source
+                   timeslice) -> CORR rows are [t iGamma k gap tau_src Re Im],
+                   self-describing. Downstream: sum over tau_src per
+                   (t,iGamma,k,gap), then average over hits k.
+                   NB: requires swc == DONTSTORE (the eo!=-1 STORE path indexes
+                   a 6-dim element; the driver allocation is 4-dim). */
+                measure_bilinear_loops_4spinorfield(right, left, k, -1, gap, tau, swc, ret);
             }
         }
     }
